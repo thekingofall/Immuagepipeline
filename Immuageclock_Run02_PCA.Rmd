@@ -1,0 +1,91 @@
+---
+title: "Immuage_clock"
+author: "Immuage_clock Group"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning = FALSE, message = FALSE) 
+```
+```{r}
+rm(list = ls())
+library(data.table)
+library(tidyverse)
+getwd()
+
+
+load("A05.rawCount.Rdata")
+
+```
+
+
+
+
+```{r}
+
+
+# head(combat_edata)
+
+library(pheatmap)
+library(RColorBrewer)
+
+colorRampPalette(rev(c("#FCB561","white","#625E9B")))(22)->colpal
+```
+
+### 一,样本相关性热图
+```{r}
+pheatmap::pheatmap(cor(combat_edata),color =colpal,border_color="grey")
+
+```
+
+
+### 二,PCA图
+
+#### 2.1 PCA降维图
+
+```{r}
+library(factoextra)
+PCAfun<-function(data_into){
+  
+  res.pca <- stats::prcomp(t(data_into), scale = TRUE)
+fun1=fviz_eig(res.pca)
+# res.pca
+fun2=fviz_pca_ind(res.pca,
+             col.ind = "cos2", # Color by the quality of representation
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE     # Avoid text overlapping
+             )
+# ggsave(file="A01.BeforePCA1.pdf",plot=fun1,width=10,height=10)
+# ggsave(file="A01.BeforePCA2.pdf",plot=fun2,width=10,height=10)
+pcalist=list()
+pcalist[[1]]<-fun1
+pcalist[[2]]<-fun2
+
+return(pcalist)
+}
+
+pca_result=PCAfun(combat_edata)
+print(pca_result[[1]])
+```
+
+
+
+#### 2.2 PCA图
+```{r}
+print(pca_result[[2]])
+```
+
+
+
+```{r}
+par(cex = 0.7)
+n.sample=ncol(exprset_last)
+if(n.sample>40) par(cex = 0.5)
+cols <- rainbow(n.sample*1.2)
+par(mfrow=c(2,2))
+hist(as.matrix(exprset_last))
+hist(as.matrix(data_norm))
+hist(as.matrix(combat_edata))
+```
